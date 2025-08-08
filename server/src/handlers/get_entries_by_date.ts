@@ -1,11 +1,25 @@
+import { db } from '../db';
+import { foodEntriesTable } from '../db/schema';
 import { type GetEntriesByDateInput, type FoodEntry } from '../schema';
+import { sql } from 'drizzle-orm';
 
 export const getEntriesByDate = async (input: GetEntriesByDateInput): Promise<FoodEntry[]> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching food entries for a specific date.
-    // If no date is provided, it should default to today's date.
-    // It should filter entries by the date portion of created_at timestamp.
+  try {
+    // Use today's date if no date is provided
     const targetDate = input.date || new Date().toISOString().split('T')[0];
     
-    return Promise.resolve([]);
+    // Query entries where the date portion of created_at matches the target date
+    const results = await db.select()
+      .from(foodEntriesTable)
+      .where(
+        sql`DATE(${foodEntriesTable.created_at}) = ${targetDate}`
+      )
+      .orderBy(foodEntriesTable.created_at)
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Failed to get entries by date:', error);
+    throw error;
+  }
 };
